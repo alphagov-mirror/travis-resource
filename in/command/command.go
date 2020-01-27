@@ -69,6 +69,17 @@ func (c *InCommand) WriteInBuildInfoFile(build *travis.Build) error {
 	c.Messager.LogItLn("Finished to write in file '[blue]%s[reset]' .\n", fileLocation)
 	return nil
 }
+func (c *InCommand) WriteInCommitRefFile(build *travis.Build) error {
+	fileLocation := filepath.Join(c.DestinationFolder, common.FILENAME_COMMIT_REF)
+	file, err := os.Create(fileLocation)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	c.Messager.LogItLn("Writing commit-ref [blue]%s[reset] to file", *build.Commit.Sha)
+	file.WriteString(*build.Commit.Sha)
+	return nil
+}
 func (c *InCommand) DownloadLogs(ctx context.Context, build *travis.Build) error {
 	if !c.Request.InParams.DownloadLogs {
 		return nil
