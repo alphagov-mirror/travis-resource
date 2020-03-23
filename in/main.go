@@ -39,6 +39,7 @@ func main() {
 	mes.FatalIf("can't get build", err)
 
 	err = inCommand.WriteInBuildInfoFile(build)
+	err = inCommand.WriteInCommitRefFile(build)
 	mes.FatalIf("can't create file build info", err)
 
 	err = inCommand.DownloadLogs(ctx, build)

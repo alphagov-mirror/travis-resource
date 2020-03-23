@@ -1,23 +1,24 @@
 package command_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/golang/mock/gomock"
-	"fmt"
-	"github.com/Orange-OpenSource/travis-resource/travis/mock_travis"
-	"github.com/Orange-OpenSource/travis-resource/travis"
-	"github.com/Orange-OpenSource/travis-resource/common"
-	"github.com/Orange-OpenSource/travis-resource/model"
-	. "github.com/Orange-OpenSource/travis-resource/in/command"
-	"github.com/Orange-OpenSource/travis-resource/messager"
-	"bytes"
 	"bufio"
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
-	"encoding/json"
-	"net/http"
+
+	"github.com/alphagov/travis-resource/common"
+	. "github.com/alphagov/travis-resource/in/command"
+	"github.com/alphagov/travis-resource/messager"
+	"github.com/alphagov/travis-resource/model"
+	"github.com/alphagov/travis-resource/travis"
+	"github.com/alphagov/travis-resource/travis/mock_travis"
+	"github.com/golang/mock/gomock"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 type GinkgoTestReporter struct{}
@@ -32,32 +33,32 @@ func (g GinkgoTestReporter) Fatalf(format string, args ...interface{}) {
 
 var _ = Describe("InCommand", func() {
 	var (
-		t GinkgoTestReporter
-		mockCtrl *gomock.Controller
-		mockBuilds *mock_travis.MockBuildsInterface
-		mockJobs *mock_travis.MockJobsInterface
-		travisClient *travis.Client
-		inCommand *InCommand
-		responseBuffer bytes.Buffer
+		t               GinkgoTestReporter
+		mockCtrl        *gomock.Controller
+		mockBuilds      *mock_travis.MockBuildsInterface
+		mockJobs        *mock_travis.MockJobsInterface
+		travisClient    *travis.Client
+		inCommand       *InCommand
+		responseBuffer  bytes.Buffer
 		responseWritter *bufio.Writer
-		logBuffer bytes.Buffer
-		logWritter *bufio.Writer
-		tempDir string
-		inRequest model.InRequest
-		repository string = "myrepo"
-		jobId1 uint = uint(1)
-		jobId2 uint = uint(2)
-		build travis.Build = travis.Build{
-			State: travis.SUCCEEDED_STATE,
-			Duration: 60,
+		logBuffer       bytes.Buffer
+		logWritter      *bufio.Writer
+		tempDir         string
+		inRequest       model.InRequest
+		repository      string       = "myrepo"
+		jobId1          uint         = uint(1)
+		jobId2          uint         = uint(2)
+		build           travis.Build = travis.Build{
+			State:     travis.SUCCEEDED_STATE,
+			Duration:  60,
 			StartedAt: "now",
-			JobIds: []uint{jobId1, jobId2},
+			JobIds:    []uint{jobId1, jobId2},
 		}
 		commit travis.Commit = travis.Commit{
-			Sha: "ref",
-			AuthorName: "arthurh",
+			Sha:         "ref",
+			AuthorName:  "arthurh",
 			CommittedAt: "now",
-			Message: "message",
+			Message:     "message",
 		}
 		job travis.Job = travis.Job{
 			Id: jobId1,
@@ -101,8 +102,8 @@ var _ = Describe("InCommand", func() {
 				Expect(err).To(BeNil())
 				Expect(buildFound).To(BeEquivalentTo(build))
 				Expect(listBuilds).To(BeEquivalentTo(travis.ListBuildsResponse{
-					Builds: []travis.Build{build},
-					Jobs: []travis.Job{job},
+					Builds:  []travis.Build{build},
+					Jobs:    []travis.Job{job},
 					Commits: []travis.Commit{commit},
 				}))
 			})
@@ -126,8 +127,8 @@ var _ = Describe("InCommand", func() {
 	Describe("write build informations in designated file", func() {
 		It("should have a file created and have good informations inside", func() {
 			listBuilds := travis.ListBuildsResponse{
-				Builds: []travis.Build{build},
-				Jobs: []travis.Job{job},
+				Builds:  []travis.Build{build},
+				Jobs:    []travis.Job{job},
 				Commits: []travis.Commit{commit},
 			}
 			inCommand.WriteInBuildInfoFile(listBuilds)
@@ -149,11 +150,11 @@ var _ = Describe("InCommand", func() {
 
 		jobResponse1 := &http.Response{
 			ContentLength: int64(len(jobLogBytes1)),
-			Body:  ioutil.NopCloser(bytes.NewReader(jobLogBytes1)),
+			Body:          ioutil.NopCloser(bytes.NewReader(jobLogBytes1)),
 		}
 		jobResponse2 := &http.Response{
 			ContentLength: int64(len(jobLogBytes2)),
-			Body:  ioutil.NopCloser(bytes.NewReader(jobLogBytes2)),
+			Body:          ioutil.NopCloser(bytes.NewReader(jobLogBytes2)),
 		}
 
 		BeforeEach(func() {
@@ -192,7 +193,7 @@ var _ = Describe("InCommand", func() {
 				Expect(err).To(BeNil())
 				Expect(reponseJson).To(BeEquivalentTo(model.InResponse{
 					Metadata: common.GetMetadatasFromBuild(build, commit),
-					Version: model.Version{build.Number},
+					Version:  model.Version{build.Number},
 				}))
 			})
 		})
