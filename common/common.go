@@ -13,6 +13,7 @@ import (
 
 const (
 	FILENAME_BUILD_INFO string = "build-info.json"
+	FILENAME_COMMIT_REF string = "commit-ref"
 )
 
 func MakeTravisClient(ctx context.Context, request model.Source) (*travis.Client, error) {
